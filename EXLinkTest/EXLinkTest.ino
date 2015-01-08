@@ -104,7 +104,7 @@ void loop() {
                 "c - Component\n"
                 "r - VGA / PC\n"
                 "s - S-Video\n\n");
-                break;
+              break;
       }
       Serial.print("ex-link> ");
   }
