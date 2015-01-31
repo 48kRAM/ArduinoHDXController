@@ -28,29 +28,42 @@ void setup() {
     pinMode(13, OUTPUT);
     Serial2.begin(9600);
     Serial.begin(9600);
-    delay(1000);
+    delay(2000);
     digitalWrite(13, HIGH);
     Serial.println("Init complete\n");
     Serial.print("ex-link> ");
 }
 
-byte pwron[] =    { 0x00,0x00,0x00,0x02,0xD4 };
-byte pwroff[] =   { 0x00,0x00,0x00,0x01,0xD5 };
-byte vol50[] =    { 0x01,0x00,0x00,0x32,0xA3 };
-byte vol8[] =     { 0x01,0x00,0x00,0x08,0xCD };
-byte vgain[] =    { 0x0a,0x00,0x04,0x00,0xc8 };
-byte compin[] =   { 0x0a,0x00,0x03,0x00,0xC9 };
-byte hdmiin[] =   { 0x0a,0x00,0x05,0x00,0xC7 };
-byte svidin[] =   { 0x0a,0x00,0x02,0x00,0xCA };
-byte mute[] =     { 0x02,0x00,0x00,0x00,0xD4 };
+/* The four-byte EX-Link commands. Header is added
+   and checksum is computed at the time the command
+   is sent.
+*/
+byte pwron[] =    { 0x00,0x00,0x00,0x02 };
+byte pwroff[] =   { 0x00,0x00,0x00,0x01 };
+byte vol50[] =    { 0x01,0x00,0x00,0x32 };
+byte vol8[] =     { 0x01,0x00,0x00,0x08 };
+byte vgain[] =    { 0x0a,0x00,0x04,0x00 };
+byte compin[] =   { 0x0a,0x00,0x03,0x00 };
+byte hdmiin[] =   { 0x0a,0x00,0x05,0x00 };
+byte svidin[] =   { 0x0a,0x00,0x02,0x00 };
+byte mute[] =     { 0x02,0x00,0x00,0x00 };
 
 // Samsung EX-link command header
 byte ex_pre[] =   { 0x08,0x22 };
 
 void ex_command(byte *command) {
   byte buffer[8];
+  // Compute checksum
+  int ctemp=0x2a;
+  for (int i=0; i<4; i++) {
+      ctemp+=command[i];
+  }
+  ctemp=((~ctemp)+1) & 0xff;
+  // Concatenate the header, command and checksum
   memcpy(buffer, ex_pre, 2);
-  memcpy(buffer+2, command, 5);
+  memcpy(buffer+2, command, 4);
+  memcpy(buffer+6, &ctemp, 1);
+  // Send the command to the TV's EX-Link port
   Serial2.write( buffer, 7 );
 }
 
